@@ -359,7 +359,7 @@ const editCliente = (index) => {
 }
 const agendaCliente = (index) => {
   const cliente = readCliente()[index]
-  window.location.href = "http://127.0.0.1:5500/agendamento.html"
+  window.location.href = "https://rc-web-eight.vercel.app/agendamento.html"
   
 }
 
