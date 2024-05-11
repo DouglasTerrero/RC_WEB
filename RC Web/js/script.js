@@ -1,6 +1,10 @@
+
+
+
+
 document.addEventListener('DOMContentLoaded', function () {
-    const loginForm = document.getElementById('login-form');
-    const loginPage = document.getElementById('login-page');
+  const loginForm = document.getElementById('login-form');
+  const loginPage = document.getElementById('login-page');
     
     loginForm.addEventListener('submit', function (event) {
         event.preventDefault();
