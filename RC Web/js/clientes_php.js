@@ -187,11 +187,11 @@ const fillAddressFields = (data) => {
 const toggleAddressFields = (enabled) => {
   const addressFields = document.querySelectorAll(".cep-form-field");
   addressFields.forEach((field) => {
-    if(field.id == "cep" || field.id == "numero" || field.id == "complemento"){  // se n for cep, num ou comp vai ser desabilitado
+  if(field.id == "cep" || field.id == "numero" || field.id == "complemento"){  // se n for cep, num ou comp vai ser desabilitado
 		field.disabled = !enabled;
 	}
 	else{
-	field.disabled = enabled;
+	  field.disabled = enabled;
 	}
   });
 };
@@ -201,7 +201,7 @@ numeroInput.addEventListener("keyup", (event) => {
   const inputValue = event.target.value;
 
   // Checar o tamanho do número
-  if (inputValue.length > 0) {
+if (inputValue.length > 0) {
     toggleAddressFields(true);
   }
 });
@@ -209,59 +209,22 @@ numeroInput.addEventListener("keyup", (event) => {
 
 //CRUD cliente
 
-const getLocalStorage = () => JSON.parse(localStorage.getItem('db_RcClient')) ?? []
-const setLocalStorage = (dbRcarcondicionado) => localStorage.setItem("db_RcClient", JSON.stringify(dbRcarcondicionado))
-
-const createCliente = (cliente) => {
-  const dbRcarcondicionado = getLocalStorage()
-  dbRcarcondicionado.push (cliente)
-  setLocalStorage(dbRcarcondicionado);
-}
-
-const readCliente = () => getLocalStorage()
-
-const updateCliente = (index, cliente) => {
-  const dbRcarcondicionado = readCliente()
-  dbRcarcondicionado[index] = cliente
-  setLocalStorage(dbRcarcondicionado)
-}
-
 const deleteCliente = (index) => {
-  const dbRcarcondicionado = readCliente()
-  dbRcarcondicionado.splice(index,1)
-  setLocalStorage(dbRcarcondicionado)
+  setOperation("DELETE")
+  setCodigo(index)
+  fillFields(index);
+  cepFieldsEnable(true);
+  submitForm();
+  cepFieldsEnable(false);
 }
 
 const isValidFields = () => {
   return document.getElementById ('form').reportValidity()
 }
 
-//Interação com formulario
-const refreshTable = () => {
-  ordenarNomes()
-  updateTable()
-  const input = document.querySelector('.campo_pesquisa')
-  input.value = ""
-  pessoaFisicaFilter.checked = false;
-  pessoaJuridicaFilter.checked = false;
-}
-
-const ordenarNomes = () => {
-  const dbRcarcondicionado = readCliente()
-  dbRcarcondicionado.sort(function(a,b) {
-    if (a.nome < b.nome) {
-      return -1;
-    } else if (a.nome > b.nome) {
-      return 1;
-    } else {
-      return 0;
-    }
-  });
-    setLocalStorage(dbRcarcondicionado);
-}
-
 const clearFields = () => {
   const fields = document.querySelectorAll('.form-field')
+  document.getElementById('op').setAttribute('value', '')
   fields.forEach(field => field.value = "")
 }
 const clearCepForm = () => {
@@ -269,98 +232,49 @@ const clearCepForm = () => {
   fields.forEach(field => field.value = "")
 }
 
-const geradorId = (index) => {
-  var numId = 0
-  numId = index + 1
-  return numId
+const cepFieldsEnable = (enable) => {
+  const fields = document.querySelectorAll('.cep-form-field')
+  if(enable){
+    fields.forEach(field => field.disabled = false)
+  }else{
+    fields.forEach(field => field.disabled = true)
+    document.getElementById('cep').enabled = true;
+  }
 }
 
-const saveCliente = () => {
-    if (isValidFields()) {
-        const cliente = {
-            numId: gerarNumeroUnico(),
-            nome: document.getElementById('nome').value.trim(),
-            nome_repres: document.getElementById('nome_repres').value.trim(),
-            cpf: validarDocumento(document.getElementById('cpf').value).numero,
-            telefone1: formatarTelefone(document.getElementById('tel1').value),
-            telefone2: formatarTelefone(document.getElementById('tel2').value),
-            email: document.getElementById('email').value.trim(),
-            rua: document.getElementById('rua').value,
-            cep: document.getElementById('cep').value,
-            numero: document.getElementById('numero').value,
-            bairro: document.getElementById('bairro').value,
-            cidade: document.getElementById('cidade').value,
-            estado: document.getElementById('estado').value,
-            complemento: document.getElementById('complemento').value
-        };
-        const index = document.getElementById('nome').dataset.index;
-        if (index == 'new') {
-            createCliente(cliente);
-            ordenarNomes();
-            updateTable();
-            clearFields();
-            clearCepForm();
-            closeForm();
-        } else {
-            updateCliente(index, cliente);
-            ordenarNomes();
-            updateTable();
-            closeForm();
-        }
-    }
-};
-
-const createRow = (cliente, index) => {
-  const newRow = document.createElement('tr')
-  newRow.innerHTML = `
-    <td><input type="checkbox" id="id-${index}" class="checkbox-item" /></td>  
-    <td>${cliente.numId}</td>
-    <td>${cliente.nome}</td>
-    <td>${cliente.email}</td>
-    <td>${cliente.cpf}</td>
-    <td>${cliente.telefone1}<br>${cliente.telefone2}</td>
-    <td>${cliente.rua}, ${cliente.numero} ${cliente.bairro}, ${cliente.cidade}-${cliente.estado} ${cliente.complemento} ${cliente.cep}</td>
-
-    <td><div class="btn_crud btn_acoes" >
-    <button id="edit-${index}" class="btn_crud btn_altera" type="button" data-action="edit"></button>
-    <button id="agenda-${index}" class="btn_crud btn_agenda" type="button"</button>
-    <button id="delete-${index}" class="btn_crud btn_exclui" type="button" data-action="delete"></button></div></td>
-  `
-  document.querySelector('#tb_cliente>tbody').appendChild(newRow)
-}
-
-const clearTable = () => {
-  const rows = document.querySelectorAll('#tb_cliente>tbody tr')
-  rows.forEach(row => row.parentNode.removeChild(row))
-}
-
-const fillFields = (cliente) => {
-  document.getElementById('nome').value = cliente.nome
-  document.getElementById('cpf').value = cliente.cpf
-  document.getElementById('tel1').value = cliente.telefone1
-  document.getElementById('tel2').value = cliente.telefone2
-  document.getElementById('email').value = cliente.email
-  document.getElementById('cep').value = cliente.cep
-  document.getElementById('rua').value = cliente.rua
-  document.getElementById('numero').value = cliente.numero
-  document.getElementById('bairro').value = cliente.bairro
-  document.getElementById('cidade').value = cliente.cidade
-  document.getElementById('estado').value = cliente.estado
-  document.getElementById('complemento').value = cliente.complemento
-  document.getElementById('nome').dataset.index = cliente.index
-  openForm()
+const fillFields = (id) => {
+  document.getElementById('nome').value   = document.getElementById(`nome-${id}`).textContent //cliente.nome
+  document.getElementById('cpf').value    = document.getElementById(`cpf_cnpj-${id}`).textContent //cliente.cpf
+  document.getElementById('tel1').value   = document.getElementById(`tel1-${id}`).textContent //cliente.telefone1
+  document.getElementById('tel2').value   = document.getElementById(`tel2-${id}`).textContent   //cliente.telefone2
+  document.getElementById('email').value  = document.getElementById(`email-${id}`).textContent //cliente.email
+  document.getElementById('cep').value    = document.getElementById(`cep-${id}`).textContent //cliente.cep
+  document.getElementById('rua').value    = document.getElementById(`logra-${id}`).textContent //cliente.rua
+  document.getElementById('numero').value = document.getElementById(`end-nro-${id}`).textContent //cliente.numero
+  document.getElementById('bairro').value = document.getElementById(`bairro-${id}`).textContent //cliente.bairro
+  document.getElementById('cidade').value = document.getElementById(`cidade-${id}`).textContent //cliente.cidade
+  document.getElementById('estado').value = document.getElementById(`uf-${id}`).textContent //cliente.estado
+  document.getElementById('complemento').value = document.getElementById(`end-cmplto-${id}`).textContent//cliente.complemento
+  setCodigo(id)
 }
 
 const editCliente = (index) => {
-  const cliente = readCliente()[index]
-  cliente.index = index
-  fillFields(cliente)
+  setOperation('UPDATE')
+  setCodigo(index)
+  fillFields(index)
+  document.getElementById("numero").disabled =  false;
+  document.getElementById("complemento").disabled = false;
   openForm()
 }
+
 const agendaCliente = (index) => {
-  const cliente = readCliente()[index]
-  window.location.href = "http://127.0.0.1:5500/agendamento.html"
-  
+  setOperation('SELECT', index)
+  window.location.href = location.protocol + '//' + location.host + "/Projeto_RC/RC%20Web/agendamento.html"
+  // window.location.href = "http://127.0.0.1:5500/agendamento.html"
+}
+
+const getNome = (id) => {
+  return document.getElementById(`nome-${id}`).textContent
 }
 
 const editDelete = (event) => {
@@ -372,11 +286,9 @@ const editDelete = (event) => {
     } else if(action == 'agenda'){
       agendaCliente(index)
     } else {
-      const cliente = readCliente()[index]  
-      const response = confirm (`Deseja realmente excluir o registro de ${cliente.nome}`)
+      const response = confirm (`Deseja realmente excluir o registro de ${getNome(index)}`)
       if (response){ 
         deleteCliente(index)
-        updateTable()
       }
     }
 
@@ -406,30 +318,10 @@ const toggleActionButtonsVisibility = () => {
     }
 };
 
-const updateTable = () => {
-  const dbRcarcondicionado = readCliente();
-  clearTable();
-  dbRcarcondicionado.forEach(createRow);
-  ordenarNomes();
-
-  const checkboxes = document.querySelectorAll('.checkbox-item');
-  checkboxes.forEach(checkbox => {
-    checkbox.addEventListener('click', toggleActionButtonsVisibility);
-  });
-
-  toggleActionButtonsVisibility();
-};
-updateTable();
-
-
 const searchByName = () => {
-  const searchTerm = document.querySelector('input[name="consulta"]').value.toLowerCase(); 
-  const dbRcarcondicionado = readCliente();
-  const filteredList = dbRcarcondicionado.filter(cliente => {
-    return cliente.nome.toLowerCase().includes(searchTerm);
-  });
-  clearTable(); 
-  filteredList.forEach(createRow); 
+  const searchTerm = document.querySelector('input[name="consulta"]').value.toLowerCase();
+  setOperation('SELECT', searchTerm);
+  submitForm('./clientes.php');
 };
 
 //alterar label de formulário para pessoa jurídica
@@ -459,6 +351,49 @@ radioPf.addEventListener('click', () => {
     telLabel2.innerText = 'Telefone Pessoal'
 })
 
+// Tipo de operação a ser utlizada UPDATE/CREATE/DELETE
+// e um valor para o caso especifico do SELECT
+const setOperation = (op, value = true) => {
+  document.getElementById('op').name = op
+  document.getElementById('op').value = value
+}
+
+// Define o código do cliente a ser UPDATE/DELETE
+const setCodigo = (cod) => {
+  document.getElementById('cod').value = cod
+}
+
+// Atualiza a página inteira
+const refreshTable = () => {
+  setCodigo(0)
+  setOperation("", "")
+  location.reload()
+  submitForm('./clientes.php')
+}
+
+// Envia o formulário
+// page: especifica a pagina utilizada (ex: ./clientes.php)
+const submitForm = (page = null) => {
+  if(page !== null)
+  {
+    document.form.action = page
+  }
+  document.getElementById('form').submit()
+}
+
+const saveCliente = () => {
+  if(isValidFields()){
+    cepFieldsEnable(true);
+    submitForm();
+    cepFieldsEnable(false);
+  }
+}
+
+const addNewCliente = ()=> {
+  setOperation('CREATE')
+  openForm();
+}
+
 //Eventos
 document.getElementById('cadastrarCliente')
   .addEventListener('click', saveCliente)
@@ -470,7 +405,7 @@ document.getElementById('close-cadastro-form')
   .addEventListener('click', closeForm)
 
 document.getElementById('open-cadastro-form')
-  .addEventListener('click', openForm)
+  .addEventListener('click', addNewCliente)
   
 document.getElementById('btn_refresh')
   .addEventListener('click', refreshTable)
@@ -493,22 +428,18 @@ const filterByPersonType = () => {
     const cpfInputs = document.querySelectorAll('#tb_cliente tbody tr');
 
     cpfInputs.forEach(row => {
-        const cpf = row.querySelector('td:nth-child(5)').innerText;
+      const cpf = row.querySelector('td:nth-child(5)').innerText;
 		  const cpfSemFormatacao = cpf.replace(/\D/g, '');
 		
-
-        if(pessoaFisicaFilter.checked && cpfSemFormatacao.length == 11){
-			row.style.display = '';
-		}
-		else if(pessoaJuridicaFilter.checked && cpfSemFormatacao.length == 14){
-			row.style.display = '';
-		}
-		else if(!pessoaFisicaFilter.checked && !pessoaJuridicaFilter.checked) {
-            row.style.display = ''; 
-        }
-		else{
-            row.style.display = 'none';
-        }
+      if(pessoaFisicaFilter.checked && cpfSemFormatacao.length == 11){
+        row.style.display = '';
+      }else if(pessoaJuridicaFilter.checked && cpfSemFormatacao.length == 14){
+        row.style.display = '';
+      }else if(!pessoaFisicaFilter.checked && !pessoaJuridicaFilter.checked) {
+        row.style.display = ''; 
+      }else{
+        row.style.display = 'none';
+      }
     })
 };
 
